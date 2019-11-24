@@ -1,0 +1,6 @@
+mail:
+  source: Dominik Wojciechowski <t1@gmail.com>
+  login: t1@gmail.com
+  password: pass
+  target :
+    - t2@gmail.com
