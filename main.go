@@ -9,8 +9,10 @@ import (
 
 func main() {
 	getConfig()
-	kom := scrapers.ScrapXKom()
-	io.SendMail([]*scrapers.Deal{kom})
+	kom := scrapers.ScrapXKomGroup("https://www.x-kom.pl/")
+	alto := scrapers.ScrapXKomGroup("https://www.al.to/")
+	morele := scrapers.ScrapMorele()
+	io.SendMail([]*scrapers.Deal{kom, alto, morele})
 }
 
 func getConfig() {

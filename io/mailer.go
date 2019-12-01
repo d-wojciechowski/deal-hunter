@@ -34,7 +34,7 @@ func getContent(deals []*scrapers.Deal) []byte {
 			"price":        fmt.Sprintf("%.2f zł <s>%.2f zł</s>", deal.NewPrice, deal.OldPrice),
 			"name":         deal.Name,
 			"fromto":       fmt.Sprintf("%s : %s", deal.Start.Format(DateFormat), deal.End.Format(DateFormat)),
-			"discountCode": "",
+			"discountCode": deal.Code,
 			"imageUrl":     deal.ImgLink,
 			"itemLink":     deal.Link,
 		})

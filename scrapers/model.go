@@ -12,4 +12,5 @@ type Deal struct {
 	Left     int64
 	Start    time.Time
 	End      time.Time
+	Code     string
 }

@@ -11,7 +11,7 @@ import (
 
 var MoneyRegexp = regexp.MustCompile("[ zł]")
 
-func ScrapXKom() *Deal {
+func ScrapXKomGroup(root string) *Deal {
 	// Instantiate default collector
 	c := colly.NewCollector()
 	deal := &Deal{}
@@ -19,7 +19,7 @@ func ScrapXKom() *Deal {
 	c.OnHTML(".hot-shot", func(e *colly.HTMLElement) {
 		pImpression := e.DOM.Find(".product-impression")
 		deal.Name = pImpression.Find(".product-name").Text()
-		deal.Link = "https://www.x-kom.pl/goracy_strzal"
+		deal.Link = root + "goracy_strzal"
 		deal.ImgLink, _ = pImpression.Find("img").Attr("src")
 		priceDiv := e.DOM.Find(".price")
 
@@ -43,7 +43,7 @@ func ScrapXKom() *Deal {
 		fmt.Println("Visiting", r.URL.String())
 	})
 
-	c.Visit("https://x-kom.pl/")
+	c.Visit(root)
 	return deal
 }
 
