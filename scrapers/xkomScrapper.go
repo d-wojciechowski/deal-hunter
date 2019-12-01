@@ -21,6 +21,7 @@ func ScrapXKomGroup(root string) *Deal {
 		deal.Name = pImpression.Find(".product-name").Text()
 		deal.Link = root + "goracy_strzal"
 		deal.ImgLink, _ = pImpression.Find("img").Attr("src")
+		deal.ImgLink = strings.Replace(deal.ImgLink, "?filters=grayscale", "", -1)
 		priceDiv := e.DOM.Find(".price")
 
 		oldPrice := MoneyRegexp.ReplaceAllString(priceDiv.Find(".old-price").Text(), "")

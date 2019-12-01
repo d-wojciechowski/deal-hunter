@@ -5,14 +5,16 @@ import (
 	"deal-hunter/scrapers"
 	"fmt"
 	"github.com/spf13/viper"
+	"github.com/whiteShtef/clockwork"
 )
 
 func main() {
 	getConfig()
-	kom := scrapers.ScrapXKomGroup("https://www.x-kom.pl/")
-	alto := scrapers.ScrapXKomGroup("https://www.al.to/")
-	morele := scrapers.ScrapMorele()
-	io.SendMail([]*scrapers.Deal{kom, alto, morele})
+
+	sched := clockwork.NewScheduler()
+	sched.Schedule().Every().Day().At("10:01").Do(jobAt10)
+	sched.Schedule().Every().Day().At("22:01").Do(jobAt10)
+	sched.Run()
 }
 
 func getConfig() {
@@ -22,4 +24,11 @@ func getConfig() {
 	if err != nil {               // Handle errors reading the config file
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
+}
+
+func jobAt10() {
+	kom := scrapers.ScrapXKomGroup("https://www.x-kom.pl/")
+	alto := scrapers.ScrapXKomGroup("https://www.al.to/")
+	morele := scrapers.ScrapMorele()
+	io.SendMail([]*scrapers.Deal{kom, alto, morele})
 }
