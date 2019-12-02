@@ -11,6 +11,8 @@ import (
 func main() {
 	getConfig()
 
+	jobAt10()
+
 	sched := clockwork.NewScheduler()
 	sched.Schedule().Every().Day().At("10:01").Do(jobAt10)
 	sched.Schedule().Every().Day().At("22:01").Do(jobAt10)
@@ -18,10 +20,11 @@ func main() {
 }
 
 func getConfig() {
-	viper.SetConfigName("config") // name of config file (without extension)
-	viper.AddConfigPath(".")      // optionally look for config in the working directory
-	err := viper.ReadInConfig()   // Find and read the config file
-	if err != nil {               // Handle errors reading the config file
+	viper.SetConfigName("config")    // name of config file (without extension)
+	viper.AddConfigPath(".")         // optionally look for config in the working directory
+	viper.AddConfigPath("resources") // optionally look for config in the working directory
+	err := viper.ReadInConfig()      // Find and read the config file
+	if err != nil {                  // Handle errors reading the config file
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
 }

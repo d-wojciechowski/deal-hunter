@@ -5,7 +5,7 @@ FROM golang:alpine AS builder
 RUN apk update && apk add --no-cache git ca-certificates && update-ca-certificates
 WORKDIR $GOPATH/src/mypackage/myapp/
 COPY . .
-COPY config.yml /go/bin/config.yml
+COPY resources /go/bin/resources
 RUN go mod download
 RUN go mod verify
 ENV CGO_ENABLED=0
@@ -19,7 +19,7 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /etc/passwd /etc/passwd
 # Copy our static executable
 COPY --from=builder /go/bin/hello /go/bin/hello
-COPY --from=builder /go/bin/config.yml /go/bin/config.yml
+COPY --from=builder /go/bin/resources /go/bin/resources
 # Use an unprivileged user.
 # Run the hello binary.
 WORKDIR "/go/bin/"

@@ -22,8 +22,8 @@ func SendMail(deals []*scrapers.Deal) {
 }
 
 func getContent(deals []*scrapers.Deal) []byte {
-	outerSrc, _ := ioutil.ReadFile("templates/eMailMessage.html")
-	src, _ := ioutil.ReadFile("templates/entry.html")
+	outerSrc, _ := ioutil.ReadFile("resources/templates/eMailMessage.html")
+	src, _ := ioutil.ReadFile("resources/templates/entry.html")
 	source := string(src)
 	outerSource := string(outerSrc)
 
