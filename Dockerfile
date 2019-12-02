@@ -20,7 +20,9 @@ COPY --from=builder /etc/passwd /etc/passwd
 # Copy our static executable
 COPY --from=builder /go/bin/hello /go/bin/hello
 COPY --from=builder /go/bin/resources /go/bin/resources
+ENV TZ=Europe/Warsaw
 # Use an unprivileged user.
 # Run the hello binary.
 WORKDIR "/go/bin/"
+VOLUME ["/go/bin/logs"]
 ENTRYPOINT ["/go/bin/hello"]

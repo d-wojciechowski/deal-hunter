@@ -4,6 +4,7 @@ import (
 	"deal-hunter/scrapers"
 	"fmt"
 	"github.com/aymerick/raymond"
+	"github.com/google/logger"
 	"github.com/jordan-wright/email"
 	"github.com/spf13/viper"
 	"io/ioutil"
@@ -27,7 +28,7 @@ func getContent(deals []*scrapers.Deal) []byte {
 	source := string(src)
 	outerSource := string(outerSrc)
 
-	ctxList := []map[string]string{}
+	var ctxList []map[string]string
 
 	for _, deal := range deals {
 		ctxList = append(ctxList, map[string]string{
@@ -53,14 +54,18 @@ func parseHtml(source string, ctxList []map[string]string) string {
 	// parse template
 	tpl, err := raymond.Parse(source)
 	if err != nil {
-		panic(err)
+		logger.Error("Could not parse html")
+		logger.Error(err.Error())
+		return ""
 	}
 	result := ""
 	for _, ctx := range ctxList {
 		// render template
 		res, err := tpl.Exec(ctx)
 		if err != nil {
-			panic(err)
+			logger.Error("Could not parse html")
+			logger.Error(err.Error())
+			return ""
 		}
 		result += res
 	}
