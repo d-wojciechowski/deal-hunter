@@ -16,7 +16,9 @@ func ScrapXKomGroup(root string) *Deal {
 	logger.Info("----------------------------------------------------------------------------------------")
 	logger.Infof("Start parsing %s in XKomGroupParser", root)
 	logger.Info("New collector init")
-	c := colly.NewCollector()
+	c := colly.NewCollector(
+		colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36 OPR/65.0.3467.48"),
+	)
 	deal := &Deal{}
 
 	c.OnHTML(".hot-shot", func(e *colly.HTMLElement) {
