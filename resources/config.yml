@@ -4,3 +4,10 @@ mail:
   password: pass
   target :
     - t2@gmail.com
+telegram:
+  token: token
+db:
+  server: SRV_ADDR
+  login: login
+  password: passwd
+  name: db

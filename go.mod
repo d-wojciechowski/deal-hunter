@@ -9,6 +9,8 @@ require (
 	github.com/antchfx/xmlquery v1.2.1 // indirect
 	github.com/antchfx/xpath v1.1.2 // indirect
 	github.com/aymerick/raymond v2.0.2+incompatible
+	github.com/go-sql-driver/mysql v1.5.0
+	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gocolly/colly v1.2.0
 	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9 // indirect
@@ -24,6 +26,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.5.0
+	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	github.com/temoto/robotstxt v1.1.1 // indirect
 	github.com/whiteShtef/clockwork v0.0.0-20191105103220-5f1b50934f20
 	golang.org/x/net v0.0.0-20191119073136-fc4aabc6c914 // indirect

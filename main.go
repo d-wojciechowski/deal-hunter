@@ -12,12 +12,17 @@ import (
 	"time"
 )
 
+var bot io.TelegramBot
+
 func main() {
 	defer setUpLogger().Close()
+
 	logger.Info("Application start")
 	logger.Info("Config parsing start")
 	getConfig()
 	logger.Info("Config parsing end")
+	bot = io.TelegramBot{}
+	bot.Setup()
 	jobAt10()
 
 	logger.Info("Scheduler initialization")
@@ -47,6 +52,7 @@ func jobAt10() {
 	alto := scrapers.ScrapXKomGroup("https://www.al.to/")
 	morele := scrapers.ScrapMorele()
 	io.SendMail([]*scrapers.Deal{kom, alto, morele})
+	bot.SendDeal([]*scrapers.Deal{kom, alto, morele})
 	logger.Info("End")
 }
 

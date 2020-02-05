@@ -20,6 +20,7 @@ func SendMail(deals []*scrapers.Deal) {
 	e.Subject = "GO HotShots"
 	e.HTML = getContent(deals)
 	e.Send("smtp.gmail.com:587", smtp.PlainAuth("", viper.GetString("mail.login"), viper.GetString("mail.password"), "smtp.gmail.com"))
+	logger.Info("EMAIL SENT")
 }
 
 func getContent(deals []*scrapers.Deal) []byte {
