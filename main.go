@@ -18,12 +18,10 @@ func main() {
 	defer setUpLogger().Close()
 
 	logger.Info("Application start")
-	logger.Info("Config parsing start")
 	getConfig()
-	logger.Info("Config parsing end")
+
 	bot = io.TelegramBot{}
 	bot.Setup()
-	jobAt10()
 
 	logger.Info("Scheduler initialization")
 	sched := clockwork.NewScheduler()
@@ -37,6 +35,8 @@ func main() {
 }
 
 func getConfig() {
+	logger.Info("Config parsing start")
+
 	viper.SetConfigName("config")    // name of config file (without extension)
 	viper.AddConfigPath(".")         // optionally look for config in the working directory
 	viper.AddConfigPath("resources") // optionally look for config in the working directory
@@ -44,15 +44,15 @@ func getConfig() {
 	if err != nil {                  // Handle errors reading the config file
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
+
+	logger.Info("Config parsing end")
 }
 
 func jobAt10() {
 	logger.Info("Start job at 10")
-	kom := scrapers.ScrapXKomGroup("https://www.x-kom.pl/")
-	alto := scrapers.ScrapXKomGroup("https://www.al.to/")
-	morele := scrapers.ScrapMorele()
-	io.SendMail([]*scrapers.Deal{kom, alto, morele})
-	bot.SendDeal([]*scrapers.Deal{kom, alto, morele})
+	deals := scrapers.GetAllDeals()
+	io.SendMail(deals)
+	bot.SendDeal(deals)
 	logger.Info("End")
 }
 

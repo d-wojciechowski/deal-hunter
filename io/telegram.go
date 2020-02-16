@@ -31,22 +31,33 @@ func (object *TelegramBot) Setup() {
 
 	updates, err := bot.GetUpdatesChan(u)
 
-	go func() {
-		for update := range updates {
-			if update.Message == nil { // ignore any non-Message Updates
-				continue
-			}
+	go object.handleRequests(updates)
+}
 
-			if update.Message.Text == "/sub" || update.Message.Text == "/subscribe" {
-				Subscribe(strconv.Itoa(int(update.Message.Chat.ID)))
+func (object *TelegramBot) handleRequests(updates tgbotapi.UpdatesChannel) {
+	for update := range updates {
+		if update.Message == nil { // ignore any non-Message Updates
+			continue
+		}
 
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "SUBSCRIBED!")
-				msg.ReplyToMessageID = update.Message.MessageID
-
-				object.bot.Send(msg)
+		if update.Message.Text == "/sub" || update.Message.Text == "/subscribe" {
+			Subscribe(strconv.Itoa(int(update.Message.Chat.ID)))
+			object.reply(update, "Subscription accepted!")
+		} else if update.Message.Text == "/deal" {
+			for _, deal := range scrapers.GetAllDeals() {
+				object.reply(update, getDealMessage(deal))
+				object.sendEndMsg(update.Message.Chat.ID)
 			}
 		}
-	}()
+	}
+}
+
+func (object *TelegramBot) reply(update tgbotapi.Update, message string) {
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, message)
+	msg.ReplyToMessageID = update.Message.MessageID
+	msg.DisableWebPagePreview = true
+
+	object.bot.Send(msg)
 }
 
 func (object *TelegramBot) SendDeal(deals []*scrapers.Deal) {
@@ -55,15 +66,27 @@ func (object *TelegramBot) SendDeal(deals []*scrapers.Deal) {
 		logger.Error(err)
 		return
 	}
-	for _, deal := range deals {
-		for _, subscriber := range subscribers {
-			strint, _ := strconv.Atoi(subscriber)
-			msgTxt := "price:" + fmt.Sprintf("    %.2f zł // %.2f zł", deal.NewPrice, deal.OldPrice) +
-				"\ndiscountCode: " + deal.Code +
-				"\nitemLink: " + deal.Link
-			msg := tgbotapi.NewMessage(int64(strint), msgTxt)
+	for _, subscriber := range subscribers {
+		strint, _ := strconv.Atoi(subscriber)
+		for _, deal := range deals {
+			msg := tgbotapi.NewMessage(int64(strint), getDealMessage(deal))
+			msg.DisableWebPagePreview = true
 			object.bot.Send(msg)
 			logger.Info("DEAL SENT : " + subscriber + " : " + deal.Name)
 		}
+		object.sendEndMsg(int64(strint))
 	}
+}
+
+func (object *TelegramBot) sendEndMsg(chatId int64) {
+	msg := tgbotapi.NewMessage(chatId, "\xE2\x9C\x85 That's all I have for you, my master! \xE2\x9C\x85")
+	msg.DisableWebPagePreview = true
+	object.bot.Send(msg)
+}
+
+func getDealMessage(deal *scrapers.Deal) string {
+	return "name : " + deal.Name +
+		"\nprice:" + fmt.Sprintf("    %.2f zł // %.2f zł", deal.NewPrice, deal.OldPrice) +
+		"\ndiscountCode: " + deal.Code +
+		"\nitemLink: " + deal.Link
 }
