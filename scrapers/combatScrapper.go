@@ -19,7 +19,6 @@ func ScrapCombat(root string) *Deal {
 
 	c.OnHTML(".hot-shot", func(e *colly.HTMLElement) {
 		deal.Name = strings.Replace(e.DOM.Find(".product-name").Text(), "\n", "", -1)
-		deal.Name = strings.Replace(deal.Name, " ", "", -1)
 		logger.Infof("Parsed name :%s", deal.Name)
 		deal.Link, _ = e.DOM.Find(".product-item-link").Attr("href")
 		logger.Infof("Parsed link :%s", deal.Link)

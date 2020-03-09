@@ -23,9 +23,10 @@ func ScrapXKomGroup(root string) *Deal {
 
 	c.OnHTML(".hot-shot", func(e *colly.HTMLElement) {
 		pImpression := e.DOM.Find(".product-impression")
+		productUrl, _ := pImpression.Attr("data-product-id")
 		deal.Name = pImpression.Find(".product-name").Text()
 		logger.Infof("Parsed name :%s", deal.Name)
-		deal.Link = root + "goracy_strzal"
+		deal.Link = root + "/p/" + productUrl
 		logger.Infof("Parsed link :%s", deal.Link)
 		deal.ImgLink, _ = pImpression.Find("img").Attr("src")
 		deal.ImgLink = strings.Replace(deal.ImgLink, "?filters=grayscale", "", -1)
