@@ -29,6 +29,8 @@ func main() {
 	sched.Schedule().Every().Day().At("10:01").Do(jobAt10)
 	logger.Info("New job every dat at 22:01 : jobAt10")
 	sched.Schedule().Every().Day().At("22:01").Do(jobAt10)
+	logger.Info("New job every dat at 23:01 : jobAt23")
+	sched.Schedule().Every().Day().At("23:01").Do(jobAt23)
 	logger.Info("Scheduler start: begin")
 	sched.Run()
 	logger.Info("Scheduler start: end")
@@ -50,8 +52,14 @@ func getConfig() {
 
 func jobAt10() {
 	logger.Info("Start job at 10")
-	deals := scrapers.GetAllDeals()
-	io.SendMail(deals)
+	deals := scrapers.GetDealsAt1022()
+	bot.SendDeal(deals)
+	logger.Info("End")
+}
+
+func jobAt23() {
+	logger.Info("Start job at 23")
+	deals := scrapers.GetDealsAt23()
 	bot.SendDeal(deals)
 	logger.Info("End")
 }
