@@ -60,21 +60,39 @@ func (object *TelegramBot) reply(update tgbotapi.Update, message string) {
 	object.bot.Send(msg)
 }
 
-func (object *TelegramBot) SendDeal(deals []*scrapers.Deal) {
+func (object *TelegramBot) SendDeals(deals []*scrapers.Deal) {
 	subscribers, err := FindAllSubscribers()
 	if err != nil {
 		logger.Error(err)
 		return
 	}
 	for _, subscriber := range subscribers {
-		strint, _ := strconv.Atoi(subscriber)
+		strint, _ := strconv.Atoi(subscriber.Id)
 		for _, deal := range deals {
 			msg := tgbotapi.NewMessage(int64(strint), getDealMessage(deal))
 			msg.DisableWebPagePreview = true
 			object.bot.Send(msg)
-			logger.Info("DEAL SENT : " + subscriber + " : " + deal.Name)
+			logger.Info("DEAL SENT : " + subscriber.Id + " : " + deal.Name)
 		}
 		object.sendEndMsg(int64(strint))
+	}
+}
+
+func (object *TelegramBot) SendDeal(deal *scrapers.Deal, withEnding bool) {
+	subscribers, err := FindAllSubscribers()
+	if err != nil {
+		logger.Error(err)
+		return
+	}
+	for _, subscriber := range subscribers {
+		strint, _ := strconv.Atoi(subscriber.Id)
+		msg := tgbotapi.NewMessage(int64(strint), getDealMessage(deal))
+		msg.DisableWebPagePreview = true
+		object.bot.Send(msg)
+		logger.Info("DEAL SENT : " + subscriber.Id + " : " + deal.Name)
+		if withEnding {
+			object.sendEndMsg(int64(strint))
+		}
 	}
 }
 

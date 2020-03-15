@@ -17,6 +17,7 @@ require (
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/google/logger v1.0.1
 	github.com/google/uuid v1.1.1 // indirect
+	github.com/jmoiron/sqlx v1.2.0
 	github.com/jordan-wright/email v0.0.0-20190819015918-041e0cec78b0
 	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/pelletier/go-toml v1.6.0 // indirect

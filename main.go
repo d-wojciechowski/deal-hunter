@@ -20,6 +20,8 @@ func main() {
 	logger.Info("Application start")
 	getConfig()
 
+	io.InitDB()
+
 	bot = io.TelegramBot{}
 	bot.Setup()
 
@@ -29,8 +31,8 @@ func main() {
 	sched.Schedule().Every().Day().At("10:01").Do(jobAt10)
 	logger.Info("New job every dat at 22:01 : jobAt10")
 	sched.Schedule().Every().Day().At("22:01").Do(jobAt10)
-	logger.Info("New job every dat at 23:01 : jobAt23")
-	sched.Schedule().Every().Day().At("23:01").Do(jobAt23)
+	logger.Info("New job every dat at 23:10 : jobAt23")
+	sched.Schedule().Every().Day().At("23:10").Do(jobAt23)
 	logger.Info("Scheduler start: begin")
 	sched.Run()
 	logger.Info("Scheduler start: end")
@@ -53,14 +55,22 @@ func getConfig() {
 func jobAt10() {
 	logger.Info("Start job at 10")
 	deals := scrapers.GetDealsAt1022()
-	bot.SendDeal(deals)
+	for i, deal := range deals {
+		if io.FindDeal(deal) == nil {
+			io.AddDeal(deal)
+			bot.SendDeal(deal, i+1 == len(deals))
+		}
+	}
 	logger.Info("End")
 }
 
 func jobAt23() {
 	logger.Info("Start job at 23")
 	deals := scrapers.GetDealsAt23()
-	bot.SendDeal(deals)
+	bot.SendDeals(deals)
+	for _, deal := range deals {
+		io.AddDeal(deal)
+	}
 	logger.Info("End")
 }
 

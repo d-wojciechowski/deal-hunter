@@ -1,79 +1,99 @@
 package io
 
 import (
-	"database/sql"
+	"deal-hunter/scrapers"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/logger"
+	"github.com/jmoiron/sqlx"
 	"github.com/spf13/viper"
+	"log"
 )
 
-func Subscribe(str string) bool {
-	db, err := openConnection()
-	if err != nil {
-		logger.Error(err)
-		return false
-	}
-	defer db.Close()
+var db *sqlx.DB
 
+func Subscribe(str string) bool {
 	item, err := findSubscriber(db, str)
 	if err != nil {
 		logger.Error(err)
 		return false
 	}
-	if str == item {
+	if item != nil && str == item.Id {
 		return true
 	}
 
-	insert, err := db.Query("INSERT INTO subscribers VALUES (" + str + ")")
+	_, err = db.Exec("INSERT INTO subscribers ( subscriber_chat ) VALUES (?)", str)
 
 	if err != nil {
 		logger.Error(err)
 		return false
 	}
-	defer insert.Close()
 	return true
 }
 
-func openConnection() (*sql.DB, error) {
+func AddDeal(deal *scrapers.Deal) bool {
+	_, err := db.NamedExec("INSERT INTO deal ( name, link, img_link, old_price, new_price, items_sold, "+
+		"items_left, start_date, end_date, promo_code ) VALUES (:name,:link, :img_link, :old_price, :new_price,"+
+		" :items_sold, :items_left, :start_date, :end_date, :promo_code )", deal)
+
+	if err != nil {
+		logger.Error(err)
+		return false
+	}
+	return true
+}
+
+func FindDeal(deal *scrapers.Deal) *scrapers.Deal {
+	var deals []*scrapers.Deal
+	named, err := db.PrepareNamed("SELECT * FROM deal WHERE name=:name AND link=:link AND img_link=:img_link AND old_price=:old_price AND new_price=:new_price AND end_date=:end_date AND promo_code=:promo_code ")
+	if named == nil {
+		logger.Error(err)
+		return nil
+	}
+	err = named.Select(&deals, deal)
+
+	if err != nil {
+		logger.Error(err)
+		return nil
+	}
+	if len(deals) > 0 {
+		return deals[0]
+	}
+	return nil
+}
+
+func InitDB() {
 	username := viper.GetString("db.login")
 	password := viper.GetString("db.password")
 	server := viper.GetString("db.server")
 	name := viper.GetString("db.name")
+	var err error
+	db, err = sqlx.Open("mysql", username+":"+password+"@tcp("+server+":3306)/"+name+"?parseTime=true")
 
-	db, err := sql.Open("mysql", username+":"+password+"@tcp("+server+":3306)/"+name)
-	return db, err
-}
-
-func findSubscriber(db *sql.DB, str string) (string, error) {
-	query, _ := db.Query("SELECT s.subscriber_chat FROM subscribers s WHERE s.subscriber_chat = " + str)
-
-	var result string
-	query.Next()
-	err := query.Scan(&result)
-
-	return result, err
-}
-
-func FindAllSubscribers() ([]string, error) {
-	db, err := openConnection()
 	if err != nil {
-		return nil, err
+		logger.Error(err)
+		log.Panic(err)
 	}
-	defer db.Close()
 
-	results, err := db.Query("SELECT subscriber_chat FROM subscribers")
+	if err = db.Ping(); err != nil {
+		logger.Error(err)
+		log.Panic(err)
+	}
+}
+
+func findSubscriber(db *sqlx.DB, str string) (*scrapers.Subscriber, error) {
+	var subscribers []*scrapers.Subscriber
+	err := db.Select(&subscribers, "SELECT * FROM subscribers WHERE subscriber_chat = ?", str)
+	if len(subscribers) > 0 {
+		return subscribers[0], err
+	}
+	return nil, err
+}
+
+func FindAllSubscribers() ([]*scrapers.Subscriber, error) {
+	var subscribers []*scrapers.Subscriber
+	err := db.Select(&subscribers, "SELECT subscriber_chat FROM subscribers")
 	if err != nil {
 		panic(err.Error())
 	}
-	strings := make([]string, 1)
-	for results.Next() {
-		var result string
-		err := results.Scan(&result)
-		if err != nil {
-			return nil, err
-		}
-		strings = append(strings, result)
-	}
-	defer results.Close()
-	return strings, nil
+	return subscribers, nil
 }

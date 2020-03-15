@@ -44,7 +44,7 @@ func ScrapXKomGroup(root string) *Deal {
 		logger.Infof("Parsed new price :%0.2f", deal.NewPrice)
 
 		countDiv := e.DOM.Find(".count")
-		deal.Left, _ = strconv.ParseInt(countDiv.Find(".pull-Left > .gs-quantity").Text(), 10, 64)
+		deal.Left, _ = strconv.ParseInt(countDiv.Find(".pull-left > .gs-quantity").Text(), 10, 64)
 		logger.Infof("Parsed left count :%d", deal.Left)
 		deal.Sold, _ = strconv.ParseInt(countDiv.Find(".pull-right > .gs-quantity").Text(), 10, 64)
 		logger.Infof("Parsed sold count :%d", deal.Sold)
