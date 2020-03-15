@@ -4,11 +4,14 @@ func GetAllDeals() []*Deal {
 	return append(GetDealsAt23(), GetDealsAt1022()...)
 }
 
+func GetFlexibleDeals() []*Deal {
+	return []*Deal{ScrapMorele()}
+}
+
 func GetDealsAt1022() []*Deal {
 	kom := ScrapXKomGroup("https://www.x-kom.pl/")
 	alto := ScrapXKomGroup("https://www.al.to/")
-	morele := ScrapMorele()
-	return []*Deal{kom, alto, morele}
+	return []*Deal{kom, alto}
 }
 
 func GetDealsAt23() []*Deal {

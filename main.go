@@ -33,6 +33,8 @@ func main() {
 	sched.Schedule().Every().Day().At("22:01").Do(jobAt10)
 	logger.Info("New job every dat at 23:10 : jobAt23")
 	sched.Schedule().Every().Day().At("23:10").Do(jobAt23)
+	logger.Info("New job every 15 minutes : frequentJob")
+	sched.Schedule().Every(15).Minutes().Do(frequentJob)
 	logger.Info("Scheduler start: begin")
 	sched.Run()
 	logger.Info("Scheduler start: end")
@@ -54,22 +56,25 @@ func getConfig() {
 
 func jobAt10() {
 	logger.Info("Start job at 10")
-	deals := scrapers.GetDealsAt1022()
+	handleDeals(scrapers.GetDealsAt1022())
+}
+
+func jobAt23() {
+	logger.Info("Start job at 23")
+	handleDeals(scrapers.GetDealsAt23())
+}
+
+func frequentJob() {
+	logger.Info("Started frequent job")
+	handleDeals(scrapers.GetFlexibleDeals())
+}
+
+func handleDeals(deals []*scrapers.Deal) {
 	for i, deal := range deals {
 		if io.FindDeal(deal) == nil {
 			io.AddDeal(deal)
 			bot.SendDeal(deal, i+1 == len(deals))
 		}
-	}
-	logger.Info("End")
-}
-
-func jobAt23() {
-	logger.Info("Start job at 23")
-	deals := scrapers.GetDealsAt23()
-	bot.SendDeals(deals)
-	for _, deal := range deals {
-		io.AddDeal(deal)
 	}
 	logger.Info("End")
 }
