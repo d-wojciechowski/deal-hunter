@@ -20,6 +20,7 @@ func ScrapMorele() *Deal {
 	deal := &Deal{}
 
 	c.OnHTML(".home-sections-promotion", func(e *colly.HTMLElement) {
+		deal.SiteName = "morele"
 		href := e.DOM.Find(".prom-box-top").Find("a")
 		deal.Name, _ = href.Attr("title")
 		logger.Infof("Parsed name :%s", deal.Name)

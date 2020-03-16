@@ -32,8 +32,8 @@ func Subscribe(str string) bool {
 
 func AddDeal(deal *scrapers.Deal) bool {
 	_, err := db.NamedExec("INSERT INTO deal ( name, link, img_link, old_price, new_price, items_sold, "+
-		"items_left, start_date, end_date, promo_code ) VALUES (:name,:link, :img_link, :old_price, :new_price,"+
-		" :items_sold, :items_left, :start_date, :end_date, :promo_code )", deal)
+		"items_left, start_date, end_date, promo_code, site_name ) VALUES (:name,:link, :img_link, :old_price, :new_price,"+
+		" :items_sold, :items_left, :start_date, :end_date, :promo_code, :site_name )", deal)
 
 	if err != nil {
 		logger.Error(err)
@@ -44,7 +44,9 @@ func AddDeal(deal *scrapers.Deal) bool {
 
 func FindDeal(deal *scrapers.Deal) *scrapers.Deal {
 	var deals []*scrapers.Deal
-	named, err := db.PrepareNamed("SELECT * FROM deal WHERE name=:name AND link=:link AND img_link=:img_link AND old_price=:old_price AND new_price=:new_price AND end_date=:end_date AND promo_code=:promo_code ")
+	named, err := db.PrepareNamed("SELECT * FROM deal WHERE name=:name AND link=:link AND img_link=:img_link" +
+		" AND old_price=:old_price AND new_price=:new_price AND end_date=:end_date " +
+		"AND promo_code=:promo_code AND site_name=:site_name ")
 	if named == nil {
 		logger.Error(err)
 		return nil
@@ -59,6 +61,19 @@ func FindDeal(deal *scrapers.Deal) *scrapers.Deal {
 		return deals[0]
 	}
 	return nil
+}
+
+func FindLatestUniqueDeals() []*scrapers.Deal {
+	var deals []*scrapers.Deal
+	err := db.Select(&deals, "SELECT * from deal d INNER JOIN "+
+		"(select max(end_date) as end_date , site_name from deal group by site_name)"+
+		" maxdeal ON d.end_date = maxdeal.end_date AND d.site_name = maxdeal.site_name")
+
+	if err != nil {
+		logger.Error(err)
+		return nil
+	}
+	return deals
 }
 
 func InitDB() {

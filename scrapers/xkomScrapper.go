@@ -22,6 +22,11 @@ func ScrapXKomGroup(root string) *Deal {
 	deal := &Deal{}
 
 	c.OnHTML(".hot-shot", func(e *colly.HTMLElement) {
+		if strings.Contains(root, "x-kom") {
+			deal.SiteName = "x-kom"
+		} else {
+			deal.SiteName = "al.to"
+		}
 		pImpression := e.DOM.Find(".product-impression")
 		productUrl, _ := pImpression.Attr("data-product-id")
 		deal.Name = pImpression.Find(".product-name").Text()

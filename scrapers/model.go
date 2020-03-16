@@ -14,6 +14,7 @@ type Deal struct {
 	Start    time.Time `db:"start_date"`
 	End      time.Time `db:"end_date"`
 	Code     string    `db:"promo_code"`
+	SiteName string    `db:"site_name"`
 }
 
 type Subscriber struct {

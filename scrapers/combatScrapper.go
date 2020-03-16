@@ -6,11 +6,12 @@ import (
 	"github.com/google/logger"
 	"strconv"
 	"strings"
+	"time"
 )
 
-func ScrapCombat(root string) *Deal {
+func ScrapCombat() *Deal {
 	logger.Info("----------------------------------------------------------------------------------------")
-	logger.Infof("Start parsing %s in ScrapCombat", root)
+	logger.Infof("Start parsing https://www.combat.pl/ in ScrapCombat")
 	logger.Info("New collector init")
 	c := colly.NewCollector(
 		colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36 OPR/65.0.3467.48"),
@@ -18,6 +19,7 @@ func ScrapCombat(root string) *Deal {
 	deal := &Deal{}
 
 	c.OnHTML(".hot-shot", func(e *colly.HTMLElement) {
+		deal.SiteName = "combat"
 		deal.Name = strings.Replace(e.DOM.Find(".product-name").Text(), "\n", "", -1)
 		logger.Infof("Parsed name :%s", deal.Name)
 		deal.Link, _ = e.DOM.Find(".product-item-link").Attr("href")
@@ -42,9 +44,9 @@ func ScrapCombat(root string) *Deal {
 		deal.Sold, _ = strconv.ParseInt(countDiv.Find(".stock-sold > strong").Text(), 10, 64)
 		logger.Infof("Parsed sold count :%d", deal.Sold)
 
-		deal.Start = getStartDate()
+		deal.Start = getStartDate().Add(time.Duration(1) * time.Hour)
 		logger.Infof("Parsed start date :%s", deal.Start)
-		deal.End = getEndDate()
+		deal.End = getStartDate().Add(time.Duration(25) * time.Hour)
 		logger.Infof("Parsed end date :%s", deal.End)
 	})
 
@@ -52,9 +54,9 @@ func ScrapCombat(root string) *Deal {
 		logger.Infof("Visiting %s", r.URL.String())
 	})
 
-	err := c.Visit(root)
+	err := c.Visit("https://www.combat.pl/")
 	if err != nil {
-		logger.Errorf("Could not parse %s", root)
+		logger.Error("Could not parse https://www.combat.pl/")
 		logger.Error(err.Error())
 	}
 	marshall, _ := json.MarshalIndent(deal, "", "\t")

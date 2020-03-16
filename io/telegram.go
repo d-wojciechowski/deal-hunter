@@ -41,15 +41,16 @@ func (object *TelegramBot) handleRequests(updates tgbotapi.UpdatesChannel) {
 		}
 
 		if update.Message.Text == "/sub" || update.Message.Text == "/subscribe" {
-			Subscribe(strconv.Itoa(int(update.Message.Chat.ID)))
+			Subscribe(getChatID(update))
 			object.reply(update, "Subscription accepted!")
 		} else if update.Message.Text == "/deal" {
-			for _, deal := range scrapers.GetAllDeals() {
-				object.reply(update, getDealMessage(deal))
-				object.sendEndMsg(update.Message.Chat.ID)
-			}
+			object.sendDealsToSubscriber(&scrapers.Subscriber{Id: getChatID(update)}, FindLatestUniqueDeals())
 		}
 	}
+}
+
+func getChatID(update tgbotapi.Update) string {
+	return strconv.Itoa(int(update.Message.Chat.ID))
 }
 
 func (object *TelegramBot) reply(update tgbotapi.Update, message string) {
@@ -57,24 +58,38 @@ func (object *TelegramBot) reply(update tgbotapi.Update, message string) {
 	msg.ReplyToMessageID = update.Message.MessageID
 	msg.DisableWebPagePreview = true
 
-	object.bot.Send(msg)
+	_, _ = object.bot.Send(msg)
 }
 
-func (object *TelegramBot) SendDeals(deals []*scrapers.Deal) {
+func (object *TelegramBot) SendDealsToAll(deals []*scrapers.Deal) {
 	subscribers, err := FindAllSubscribers()
 	if err != nil {
 		logger.Error(err)
 		return
 	}
 	for _, subscriber := range subscribers {
-		strint, _ := strconv.Atoi(subscriber.Id)
-		for _, deal := range deals {
-			msg := tgbotapi.NewMessage(int64(strint), getDealMessage(deal))
-			msg.DisableWebPagePreview = true
-			object.bot.Send(msg)
-			logger.Info("DEAL SENT : " + subscriber.Id + " : " + deal.Name)
-		}
-		object.sendEndMsg(int64(strint))
+		object.sendDealsToSubscriber(subscriber, deals)
+	}
+}
+
+func (object *TelegramBot) sendDealsToSubscriber(subscriber *scrapers.Subscriber, deals []*scrapers.Deal) {
+	strint, _ := strconv.Atoi(subscriber.Id)
+	for _, deal := range deals {
+		msg := tgbotapi.NewMessage(int64(strint), getDealMessage(deal))
+		msg.DisableWebPagePreview = true
+		_, err := object.bot.Send(msg)
+		object.handleMsgSent(err, deal, subscriber)
+	}
+	object.sendEndMsg(int64(strint))
+}
+
+func (object *TelegramBot) handleMsgSent(err error, deal *scrapers.Deal, subscriber *scrapers.Subscriber) {
+	if err != nil {
+		logger.Error("ERROR WHILE SENDING DEAL : " + deal.Name)
+		logger.Error(err)
+		logger.Error(err.Error())
+	} else {
+		logger.Info("DEAL SENT : " + subscriber.Id + " : " + deal.Name)
 	}
 }
 
@@ -88,8 +103,8 @@ func (object *TelegramBot) SendDeal(deal *scrapers.Deal, withEnding bool) {
 		strint, _ := strconv.Atoi(subscriber.Id)
 		msg := tgbotapi.NewMessage(int64(strint), getDealMessage(deal))
 		msg.DisableWebPagePreview = true
-		object.bot.Send(msg)
-		logger.Info("DEAL SENT : " + subscriber.Id + " : " + deal.Name)
+		_, err := object.bot.Send(msg)
+		object.handleMsgSent(err, deal, subscriber)
 		if withEnding {
 			object.sendEndMsg(int64(strint))
 		}
@@ -99,7 +114,7 @@ func (object *TelegramBot) SendDeal(deal *scrapers.Deal, withEnding bool) {
 func (object *TelegramBot) sendEndMsg(chatId int64) {
 	msg := tgbotapi.NewMessage(chatId, "\xE2\x9C\x85 That's all I have for you, my master! \xE2\x9C\x85")
 	msg.DisableWebPagePreview = true
-	object.bot.Send(msg)
+	_, _ = object.bot.Send(msg)
 }
 
 func getDealMessage(deal *scrapers.Deal) string {

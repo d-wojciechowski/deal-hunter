@@ -15,6 +15,6 @@ func GetDealsAt1022() []*Deal {
 }
 
 func GetDealsAt23() []*Deal {
-	combat := ScrapCombat("https://www.combat.pl/")
+	combat := ScrapCombat()
 	return []*Deal{combat}
 }
