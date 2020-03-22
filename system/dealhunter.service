@@ -1,0 +1,14 @@
+[Unit]
+Description=Deal Hunter Service
+After=network.target
+StartLimitIntervalSec=1
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=working
+ExecStart=DEAL HUNTER START COMMAND
+
+[Install]
+WantedBy=multi-user.target
