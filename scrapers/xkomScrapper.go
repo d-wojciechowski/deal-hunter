@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var MoneyRegexp = regexp.MustCompile("[ zł]")
+var MoneyRegexp = regexp.MustCompile("[  zł]")
 
 func ScrapXKomGroup(root string) *Deal {
 	logger.Info("----------------------------------------------------------------------------------------")

@@ -17,31 +17,29 @@ func ScrapCombat() *Deal {
 		colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36 OPR/65.0.3467.48"),
 	)
 	deal := &Deal{}
+	baseSite := "https://www.combat.pl/"
 
-	c.OnHTML(".hot-shot", func(e *colly.HTMLElement) {
+	c.OnHTML(".main", func(e *colly.HTMLElement) {
 		deal.SiteName = "combat"
-		deal.Name = strings.Replace(e.DOM.Find(".product-name").Text(), "\n", "", -1)
+		deal.Name = strings.Replace(e.DOM.Find(".page-title > span").Text(), "\n", "", -1)
 		logger.Infof("Parsed name :%s", deal.Name)
-		deal.Link, _ = e.DOM.Find(".product-item-link").Attr("href")
+		s2 := e.DOM.Find(".sku > span").Last()
+		deal.Link = baseSite + s2.Text()
 		logger.Infof("Parsed link :%s", deal.Link)
-		deal.ImgLink, _ = e.DOM.Find(".product-image-photo").Attr("src")
+		s3 := e.DOM.Find("img")
+		deal.ImgLink, _ = s3.Attr("src")
 		deal.ImgLink = strings.Replace(deal.ImgLink, "?filters=grayscale", "", -1)
 		logger.Infof("Parsed img link :%s", deal.ImgLink)
-		priceDiv := e.DOM.Find(".price-box")
-
-		price := MoneyRegexp.ReplaceAllString(priceDiv.Find("span > .price").Text(), "")
-		price = strings.Replace(price, ",", ".", -1)
-		prices := strings.Split(price, " ")
-		deal.OldPrice, _ = strconv.ParseFloat(prices[1], 64)
+		find := e.DOM.Find(".price")
+		deal.OldPrice, _ = convertToNumber(find.Nodes[0].FirstChild.Data)
 		logger.Infof("Parsed old price :%0.2f", deal.OldPrice)
-
-		deal.NewPrice, _ = strconv.ParseFloat(prices[0], 64)
+		deal.NewPrice, _ = convertToNumber(find.Nodes[1].FirstChild.Data)
 		logger.Infof("Parsed new price :%0.2f", deal.NewPrice)
 
-		countDiv := e.DOM.Find(".deal-stock-label")
-		deal.Left, _ = strconv.ParseInt(countDiv.Find(".stock-available > strong").Text(), 10, 64)
+		selection := e.DOM.Find(".pull-left")
+		deal.Left, _ = strconv.ParseInt(selection.Text(), 10, 64)
 		logger.Infof("Parsed left count :%d", deal.Left)
-		deal.Sold, _ = strconv.ParseInt(countDiv.Find(".stock-sold > strong").Text(), 10, 64)
+		deal.Sold, _ = strconv.ParseInt(e.DOM.Find(".pull-right > strong").Text(), 10, 64)
 		logger.Infof("Parsed sold count :%d", deal.Sold)
 
 		deal.Start = getStartDate().Add(time.Duration(1) * time.Hour)
@@ -54,13 +52,19 @@ func ScrapCombat() *Deal {
 		logger.Infof("Visiting %s", r.URL.String())
 	})
 
-	err := c.Visit("https://www.combat.pl/")
+	err := c.Visit(baseSite + "goracy-strzal")
 	if err != nil {
-		logger.Error("Could not parse https://www.combat.pl/")
+		logger.Errorf("Could not parse %sgoracy-strzal", baseSite)
 		logger.Error(err.Error())
 	}
 	marshall, _ := json.MarshalIndent(deal, "", "\t")
 	logger.Infof("Scrapped object:\n%s", string(marshall))
 	logger.Info("----------------------------------------------------------------------------------------")
 	return deal
+}
+
+func convertToNumber(value string) (float64, error) {
+	price := MoneyRegexp.ReplaceAllString(value, "")
+	price = strings.Replace(price, ",", ".", -1)
+	return strconv.ParseFloat(price, 64)
 }
