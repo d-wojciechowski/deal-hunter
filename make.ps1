@@ -1,21 +1,21 @@
+$env:PRODUCT_NAME="DealHunter"
+Write-Output("Building $env:PRODUCT_NAME`n")
+
+Write-Output("Current GOOS $env:GOOS : Current GOARCH :$env:GOARCH.`n")
 $env:OLDGOOS=$env:GOOS
 $env:OLDGOARCH=$env:GOARCH
 
 $env:GOARCH="amd64"
 $env:GOOS="linux"
-go build -ldflags="-w -s" -o distr/DealHunter-linux-x64
+Write-Output("Linux x64 build| GOOS $env:GOOS : GOARCH :$env:GOARCH.")
+go build -ldflags="-w -s" -o distr/$env:PRODUCT_NAME-linux-x64
+Write-Output("Linux build done.`n")
 
-#$env:GOARCH="386"
-#$env:GOOS="linux"
-#go build -o distr/WncPlugin-linux-x86
-#
-#$env:GOARCH="amd64"
-#$env:GOOS="windows"
-#go build -o distr/WncPlugin-windows-x64.exe
-#
-#$env:GOARCH="amd64"
-#$env:GOOS="darwin"
-#go build -o distr/WncPlugin-macos-x64
+$env:GOARCH="amd64"
+$env:GOOS="windows"
+Write-Output("Windows x64 build| GOOS $env:GOOS : GOARCH :$env:GOARCH.")
+go build -o distr/$env:PRODUCT_NAME-windows-x64.exe
+Write-Output("Windows x64 build done.`n")
 
 $env:GOOS=$env:OLDGOOS
 $env:GOARCH=$env:OLDGOARCH

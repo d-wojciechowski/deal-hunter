@@ -31,16 +31,10 @@ func ScrapCombat() *Deal {
 		deal.ImgLink = strings.Replace(deal.ImgLink, "?filters=grayscale", "", -1)
 		logger.Infof("Parsed img link :%s", deal.ImgLink)
 		find := e.DOM.Find(".price")
-		deal.OldPrice, _ = convertToNumber(find.Nodes[0].FirstChild.Data)
+		deal.OldPrice, _ = convertToNumber(find.Nodes[1].FirstChild.Data)
 		logger.Infof("Parsed old price :%0.2f", deal.OldPrice)
-		deal.NewPrice, _ = convertToNumber(find.Nodes[1].FirstChild.Data)
+		deal.NewPrice, _ = convertToNumber(find.Nodes[0].FirstChild.Data)
 		logger.Infof("Parsed new price :%0.2f", deal.NewPrice)
-
-		selection := e.DOM.Find(".pull-left")
-		deal.Left, _ = strconv.ParseInt(selection.Text(), 10, 64)
-		logger.Infof("Parsed left count :%d", deal.Left)
-		deal.Sold, _ = strconv.ParseInt(e.DOM.Find(".pull-right > strong").Text(), 10, 64)
-		logger.Infof("Parsed sold count :%d", deal.Sold)
 
 		deal.Start = getStartDate().Add(time.Duration(1) * time.Hour)
 		logger.Infof("Parsed start date :%s", deal.Start)
