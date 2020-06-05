@@ -25,8 +25,6 @@ func main() {
 	logger.Info("Application start")
 	getConfig()
 
-	scrapers.GetDealsAt23()
-
 	io.InitDB()
 
 	bot = io.TelegramBot{}
