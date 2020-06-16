@@ -36,9 +36,10 @@ func ScrapCombat() *Deal {
 		deal.NewPrice, _ = convertToNumber(find.Nodes[0].FirstChild.Data)
 		logger.Infof("Parsed new price :%0.2f", deal.NewPrice)
 
-		deal.Start = getStartDate().Add(time.Duration(1) * time.Hour)
+		now := time.Now()
+		deal.Start = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 		logger.Infof("Parsed start date :%s", deal.Start)
-		deal.End = getStartDate().Add(time.Duration(25) * time.Hour)
+		deal.End = time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, now.Location())
 		logger.Infof("Parsed end date :%s", deal.End)
 	})
 

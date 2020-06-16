@@ -2,18 +2,15 @@ package main
 
 import (
 	"deal-hunter/io"
-	"deal-hunter/scrapers"
+	"deal-hunter/scheduler"
 	"flag"
 	"fmt"
 	"github.com/google/logger"
 	"github.com/spf13/viper"
-	"github.com/whiteShtef/clockwork"
 	"log"
 	"os"
 	"time"
 )
-
-var bot io.TelegramBot
 
 var configFolder = flag.String("configFolder", ".", "full path to config folder")
 var logFolder = flag.String("logFolder", "logs", "full path to log folder")
@@ -27,21 +24,8 @@ func main() {
 
 	io.InitDB()
 
-	bot = io.TelegramBot{}
-	bot.Setup()
-
-	logger.Info("Scheduler initialization")
-	sched := clockwork.NewScheduler()
-	logger.Info("New job every dat at 10:01 : jobAt10")
-	sched.Schedule().Every().Day().At("10:01").Do(jobAt10)
-	logger.Info("New job every dat at 22:01 : jobAt10")
-	sched.Schedule().Every().Day().At("22:01").Do(jobAt10)
-	logger.Info("New job every dat at 23:10 : jobAt23")
-	sched.Schedule().Every().Day().At("23:10").Do(jobAt23)
-	logger.Info("New job every 15 minutes : frequentJob")
-	sched.Schedule().Every(15).Minutes().Do(frequentJob)
-	logger.Info("Scheduler start: begin")
-	sched.Run()
+	scheduler.InitJobs()
+	scheduler.CreateScheduler().Run()
 	logger.Info("Scheduler start: end")
 }
 
@@ -56,31 +40,6 @@ func getConfig() {
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
 	logger.Info("Config parsing end")
-}
-
-func jobAt10() {
-	logger.Info("Start job at 10")
-	handleDeals(scrapers.GetDealsAt1022())
-}
-
-func jobAt23() {
-	logger.Info("Start job at 23")
-	handleDeals(scrapers.GetDealsAt23())
-}
-
-func frequentJob() {
-	logger.Info("Started frequent job")
-	handleDeals(scrapers.GetFlexibleDeals())
-}
-
-func handleDeals(deals []*scrapers.Deal) {
-	for i, deal := range deals {
-		if io.FindDeal(deal) == nil {
-			io.AddDeal(deal)
-			bot.SendDeal(deal, i+1 == len(deals))
-		}
-	}
-	logger.Info("End")
 }
 
 func setUpLogger() *logger.Logger {

@@ -1,6 +1,8 @@
 $env:PRODUCT_NAME="DealHunter"
 Write-Output("Building $env:PRODUCT_NAME`n")
 
+Remove-Item –path "distr\*"
+
 Write-Output("Current GOOS $env:GOOS : Current GOARCH :$env:GOARCH.`n")
 $env:OLDGOOS=$env:GOOS
 $env:OLDGOARCH=$env:GOARCH
