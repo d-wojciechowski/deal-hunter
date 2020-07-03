@@ -5,7 +5,6 @@ import (
 	"github.com/gocolly/colly"
 	"github.com/google/logger"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -20,40 +19,59 @@ func ScrapXKomGroup(root string) *Deal {
 		colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36 OPR/65.0.3467.48"),
 	)
 	deal := &Deal{}
+	hotShotRoot := root + "/goracy_strzal"
 
-	c.OnHTML(".hot-shot", func(e *colly.HTMLElement) {
-		if strings.Contains(root, "x-kom") {
+	c.OnHTML("html", func(e *colly.HTMLElement) {
+		if strings.Contains(hotShotRoot, "x-kom") {
 			deal.SiteName = "x-kom"
 		} else {
 			deal.SiteName = "al.to"
 		}
-		pImpression := e.DOM.Find(".product-impression")
-		productUrl, _ := pImpression.Attr("data-product-id")
-		deal.Name = pImpression.Find(".product-name").Text()
+
+		scripts := e.DOM.Find("script")
+		var jsonData string
+		for _, script := range scripts.Nodes {
+			child := script.FirstChild
+			if child != nil {
+				data := child.Data
+				if strings.Contains(data, "hotShot") {
+					jsonData = data
+					break
+				}
+			}
+		}
+
+		jsonData = jsonData[strings.Index(jsonData, "hotShot") : len(jsonData)-1]
+		jsonData = jsonData[strings.Index(jsonData, "extend")+8 : len(jsonData)-1]
+		jsonData = jsonData[0 : strings.Index(jsonData, "},\"id\"")+1]
+
+		var objmap map[string]json.RawMessage
+		err := json.Unmarshal([]byte(jsonData), &objmap)
+		if err != nil {
+			panic(err)
+		}
+		json.Unmarshal(objmap["promotionName"], &deal.Name)
 		logger.Infof("Parsed name :%s", deal.Name)
-		deal.Link = root + "/p/" + productUrl
-		logger.Infof("Parsed link :%s", deal.Link)
-		deal.ImgLink, _ = pImpression.Find("img").Attr("src")
-		deal.ImgLink = strings.Replace(deal.ImgLink, "?filters=grayscale", "", -1)
-		logger.Infof("Parsed img link :%s", deal.ImgLink)
-		priceDiv := e.DOM.Find(".price")
 
-		oldPrice := MoneyRegexp.ReplaceAllString(priceDiv.Find(".old-price").Text(), "")
-		oldPrice = strings.Replace(oldPrice, ",", ".", 1)
-		deal.OldPrice, _ = strconv.ParseFloat(oldPrice, 64)
-		logger.Infof("Parsed old price :%0.2f", deal.OldPrice)
-
-		newPrice := MoneyRegexp.ReplaceAllString(priceDiv.Find(".new-price").Text(), "")
-		newPrice = strings.Replace(newPrice, ",", ".", 1)
-		deal.NewPrice, _ = strconv.ParseFloat(newPrice, 64)
+		json.Unmarshal(objmap["price"], &deal.NewPrice)
 		logger.Infof("Parsed new price :%0.2f", deal.NewPrice)
 
-		countDiv := e.DOM.Find(".count")
-		deal.Left, _ = strconv.ParseInt(countDiv.Find(".pull-left > .gs-quantity").Text(), 10, 64)
-		logger.Infof("Parsed left count :%d", deal.Left)
-		deal.Sold, _ = strconv.ParseInt(countDiv.Find(".pull-right > .gs-quantity").Text(), 10, 64)
-		logger.Infof("Parsed sold count :%d", deal.Sold)
+		json.Unmarshal(objmap["oldPrice"], &deal.OldPrice)
+		logger.Infof("Parsed old price :%0.2f", deal.OldPrice)
 
+		dealUrl, _ := e.DOM.Find("meta[property='og:url']").Attr("content")
+		deal.Link = dealUrl
+		logger.Infof("Parsed link :%s", deal.Link)
+
+		dealImageLink, _ := e.DOM.Find("meta[property='og:image']").Attr("content")
+		deal.ImgLink = dealImageLink
+		deal.ImgLink = strings.Replace(deal.ImgLink, "?filters=grayscale", "", -1)
+		logger.Infof("Parsed img link :%s", deal.ImgLink)
+
+		json.Unmarshal(objmap["promotionTotalCount"], &deal.Left)
+		logger.Infof("Parsed left count :%d", deal.Left)
+
+		e.DOM.Find("script")
 		deal.Start = getStartDate()
 		logger.Infof("Parsed start date :%s", deal.Start)
 		deal.End = getEndDate()
@@ -64,9 +82,9 @@ func ScrapXKomGroup(root string) *Deal {
 		logger.Infof("Visiting %s", r.URL.String())
 	})
 
-	err := c.Visit(root)
+	err := c.Visit(hotShotRoot)
 	if err != nil {
-		logger.Errorf("Could not parse %s", root)
+		logger.Errorf("Could not parse %s", hotShotRoot)
 		logger.Error(err.Error())
 	}
 	marshall, _ := json.MarshalIndent(deal, "", "\t")

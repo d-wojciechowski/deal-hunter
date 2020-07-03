@@ -1,8 +1,7 @@
 package main
 
 import (
-	"deal-hunter/io"
-	"deal-hunter/scheduler"
+	"deal-hunter/scrapers"
 	"flag"
 	"fmt"
 	"github.com/google/logger"
@@ -22,11 +21,14 @@ func main() {
 	logger.Info("Application start")
 	getConfig()
 
-	io.InitDB()
+	//scrapers.ScrapXKomGroup("http://x-kom.pl")
+	scrapers.ScrapXKomGroup("http://al.to")
 
-	scheduler.InitJobs()
-	scheduler.CreateScheduler().Run()
-	logger.Info("Scheduler start: end")
+	//io.InitDB()
+
+	//scheduler.InitJobs()
+	//scheduler.CreateScheduler().Run()
+	//logger.Info("Scheduler start: end")
 }
 
 func getConfig() {
