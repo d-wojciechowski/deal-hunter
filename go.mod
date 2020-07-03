@@ -1,37 +1,38 @@
 module deal-hunter
 
-go 1.13
+go 1.14
 
 require (
-	github.com/PuerkitoBio/goquery v1.5.0 // indirect
-	github.com/andybalholm/cascadia v1.1.0 // indirect
-	github.com/antchfx/htmlquery v1.2.0 // indirect
-	github.com/antchfx/xmlquery v1.2.1 // indirect
-	github.com/antchfx/xpath v1.1.2 // indirect
-	github.com/aymerick/raymond v2.0.2+incompatible
+	github.com/PuerkitoBio/goquery v1.5.1 // indirect
+	github.com/andybalholm/cascadia v1.2.0 // indirect
+	github.com/antchfx/htmlquery v1.2.3 // indirect
+	github.com/antchfx/xmlquery v1.2.4 // indirect
+	github.com/antchfx/xpath v1.1.9 // indirect
+	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gocolly/colly v1.2.0
-	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9 // indirect
-	github.com/golang/protobuf v1.3.2 // indirect
-	github.com/google/logger v1.0.1
+	github.com/golang/protobuf v1.4.2 // indirect
+	github.com/google/logger v1.1.0
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/jmoiron/sqlx v1.2.0
-	github.com/jordan-wright/email v0.0.0-20190819015918-041e0cec78b0
 	github.com/kennygrant/sanitize v1.2.4 // indirect
-	github.com/pelletier/go-toml v1.6.0 // indirect
+	github.com/mitchellh/mapstructure v1.3.2 // indirect
+	github.com/pelletier/go-toml v1.8.0 // indirect
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect
-	github.com/sirupsen/logrus v1.4.2
-	github.com/spf13/afero v1.2.2 // indirect
+	github.com/spf13/afero v1.3.1 // indirect
+	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/spf13/viper v1.5.0
+	github.com/spf13/viper v1.7.0
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	github.com/temoto/robotstxt v1.1.1 // indirect
-	github.com/whiteShtef/clockwork v0.0.0-20191105103220-5f1b50934f20
-	golang.org/x/net v0.0.0-20191119073136-fc4aabc6c914 // indirect
-	golang.org/x/sys v0.0.0-20191128015809-6d18c012aee9 // indirect
-	google.golang.org/appengine v1.6.5 // indirect
-	gopkg.in/yaml.v2 v2.2.7 // indirect
+	github.com/whiteShtef/clockwork v0.0.0-20200221012748-027e62affd84
+	golang.org/x/net v0.0.0-20200625001655-4c5254603344 // indirect
+	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae // indirect
+	golang.org/x/text v0.3.3 // indirect
+	google.golang.org/appengine v1.6.6 // indirect
+	google.golang.org/protobuf v1.25.0 // indirect
+	gopkg.in/ini.v1 v1.57.0 // indirect
 )

@@ -24,7 +24,7 @@ func (object *TelegramBot) Setup() {
 	}
 
 	logger.Info("Telegram setup completed")
-	logger.Info("Authorized on account %s", bot.Self.UserName)
+	logger.Infof("Authorized on account %s", bot.Self.UserName)
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
