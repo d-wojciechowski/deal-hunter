@@ -62,14 +62,15 @@ func constructJob(stringMap map[string]interface{}, function func(interval strin
 func (job *ScheduleJob) execute() {
 	deals := make([]*scrapers.Deal, 0)
 	for _, step := range job.Steps {
-		deals = append(deals, step())
+		stepResult := step()
+		deals = append(deals, stepResult)
 	}
 	job.Handler(deals)
 }
 
 func defaultHandler(deals []*scrapers.Deal) {
 	for i, deal := range deals {
-		if io.FindDeal(deal) == nil {
+		if deal != nil && deal.Name != "" && io.FindDeal(deal) == nil {
 			io.AddDeal(deal)
 			bot.SendDeal(deal, i+1 == len(deals))
 		}
