@@ -1,9 +1,3 @@
-mail:
-  source: Dominik Wojciechowski <t1@gmail.com>
-  login: t1@gmail.com
-  password: pass
-  target :
-    - t2@gmail.com
 telegram:
   token: token
 db:
@@ -11,3 +5,17 @@ db:
   login: login
   password: passwd
   name: db
+
+scheduler:
+  daily:
+    10-01:
+      - xkom
+      - alto
+    20-01:
+      - xkom
+      - alto
+    00-01:
+      - combat
+  every:
+    15:
+      - morele
