@@ -19,7 +19,7 @@ func ScrapXKomGroup(root string) *Deal {
 		colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36 OPR/65.0.3467.48"),
 	)
 	deal := &Deal{}
-	hotShotRoot := root + "/goracy_strzal"
+	hotShotRoot := root + "goracy_strzal"
 
 	c.OnHTML("html", func(e *colly.HTMLElement) {
 		if strings.Contains(hotShotRoot, "x-kom") {
@@ -28,16 +28,13 @@ func ScrapXKomGroup(root string) *Deal {
 			deal.SiteName = "al.to"
 		}
 
-		scripts := e.DOM.Find("script")
-		var jsonData string
-		for _, script := range scripts.Nodes {
-			child := script.FirstChild
-			if child != nil {
-				data := child.Data
-				if strings.Contains(data, "hotShot") {
-					jsonData = data
-					break
-				}
+		jsonData := ""
+		for {
+			jsonData = findHotShotJSON(e)
+			if jsonData == "" {
+				time.Sleep(1 * time.Minute)
+			} else {
+				break
 			}
 		}
 
@@ -48,8 +45,10 @@ func ScrapXKomGroup(root string) *Deal {
 		var objmap map[string]json.RawMessage
 		err := json.Unmarshal([]byte(jsonData), &objmap)
 		if err != nil {
-			panic(err)
+			logger.Error("Could not deserialize json. Root error: ")
+			logger.Error(err.Error())
 		}
+
 		json.Unmarshal(objmap["promotionName"], &deal.Name)
 		logger.Infof("Parsed name :%s", deal.Name)
 
@@ -91,6 +90,22 @@ func ScrapXKomGroup(root string) *Deal {
 	logger.Infof("Scrapped object:\n%s", string(marshall))
 	logger.Info("----------------------------------------------------------------------------------------")
 	return deal
+}
+
+func findHotShotJSON(e *colly.HTMLElement) string {
+	scripts := e.DOM.Find("script")
+	var jsonData string
+	for _, script := range scripts.Nodes {
+		child := script.FirstChild
+		if child != nil {
+			data := child.Data
+			if strings.Contains(data, "hotShot") {
+				jsonData = data
+				break
+			}
+		}
+	}
+	return jsonData
 }
 
 func getStartDate() time.Time {

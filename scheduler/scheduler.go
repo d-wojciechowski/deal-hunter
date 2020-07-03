@@ -14,20 +14,16 @@ var jobConfig = make(map[string]func() *scrapers.Deal)
 var bot = io.TelegramBot{}
 
 func InitJobs() {
-	jobConfig["xkom"] = scrapXKom
-	jobConfig["alto"] = scrapAlto
+	jobConfig["xkom"] = func() *scrapers.Deal {
+		return scrapers.ScrapXKomGroup("https://www.x-kom.pl/")
+	}
+	jobConfig["alto"] = func() *scrapers.Deal {
+		return scrapers.ScrapXKomGroup("https://www.al.to/")
+	}
 	jobConfig["combat"] = scrapers.ScrapCombat
 	jobConfig["morele"] = scrapers.ScrapMorele
 
 	bot.Setup()
-}
-
-func scrapXKom() *scrapers.Deal {
-	return scrapers.ScrapXKomGroup("https://www.x-kom.pl/")
-}
-
-func scrapAlto() *scrapers.Deal {
-	return scrapers.ScrapXKomGroup("https://www.al.to/")
 }
 
 type ScheduleJob struct {
