@@ -1,13 +1,13 @@
 package main
 
 import (
-	"deal-hunter/io"
-	"deal-hunter/scheduler"
+	"deal-hunter/scrapers"
 	"flag"
 	"fmt"
 	"github.com/google/logger"
 	"github.com/spf13/viper"
 	"log"
+	"net/url"
 	"os"
 	"time"
 )
@@ -21,12 +21,19 @@ func main() {
 
 	logger.Info("Application start")
 	getConfig()
+	parse, err := url.Parse("https://x-kom.pl")
+	if err != nil {
+		logger.Errorf("Could not parse given URL: %s", "link")
+		panic(err)
+	}
+	scrapper := scrapers.XKomGroupScrapper{URL: parse}
+	scrapper.Scrap()
 
-	io.InitDB()
+	//io.InitDB()
 
-	scheduler.InitJobs()
-	scheduler.CreateScheduler().Run()
-	logger.Info("Scheduler start: end")
+	//scheduler.InitJobs()
+	//scheduler.CreateScheduler().Run()
+	//logger.Info("Scheduler start: end")
 }
 
 func getConfig() {

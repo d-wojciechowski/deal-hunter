@@ -36,35 +36,25 @@ func (scrapper *CombatScrapper) Scrap() *Deal {
 
 	deal.SiteName = "combat"
 	json.Unmarshal(objmap["name"], &deal.Name)
-	logger.Infof("Parsed name :%s", deal.Name)
 	json.Unmarshal(objmap["regular_url"], &deal.Link)
-	logger.Infof("Parsed link :%s", deal.Link)
 	json.Unmarshal(objmap["photo"], &deal.ImgLink)
 	deal.ImgLink = scrapper.URL.String() + "/pub/media/catalog/product" + deal.ImgLink
-	logger.Infof("Parsed img link :%s", deal.ImgLink)
 
 	tempString := ""
 	json.Unmarshal(objmap["regular_price"], &tempString)
 	tempString = tempString[strings.Index(tempString, ">")+1 : strings.Index(tempString, "\u00a0z")]
 	deal.OldPrice, _ = convertToNumber(tempString)
-	logger.Infof("Parsed old price :%0.2f", deal.OldPrice)
 
 	json.Unmarshal(objmap["promotion_price"], &tempString)
 	tempString = tempString[strings.Index(tempString, ">")+1 : strings.Index(tempString, "\u00a0z")]
 	deal.NewPrice, _ = convertToNumber(tempString)
-	logger.Infof("Parsed new price :%0.2f", deal.NewPrice)
 
 	now := time.Now()
 	deal.Start = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	logger.Infof("Parsed start date :%s", deal.Start)
 	deal.End = time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, now.Location())
-	logger.Infof("Parsed end date :%s", deal.End)
 
 	json.Unmarshal(objmap["left"], &deal.Left)
-	logger.Infof("Parsed items left :%s", deal.Left)
-
 	json.Unmarshal(objmap["sold"], &deal.Sold)
-	logger.Infof("Parsed items sold :%s", deal.Sold)
 
 	marshall, _ := json.MarshalIndent(deal, "", "\t")
 	logger.Infof("Scrapped object:\n%s", string(marshall))

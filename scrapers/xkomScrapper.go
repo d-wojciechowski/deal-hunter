@@ -5,94 +5,68 @@ import (
 	"github.com/gocolly/colly"
 	"github.com/google/logger"
 	"net/url"
-	"reflect"
-	"regexp"
 	"strings"
 	"time"
 )
 
-var MoneyRegexp = regexp.MustCompile("[  zł]")
-
 type XKomGroupScrapper struct {
 	URL *url.URL
+	collyDriven
 }
 
 func (scrapper *XKomGroupScrapper) Scrap() *Deal {
+	targetUrl := scrapper.URL.String() + "/goracy_strzal"
+	c := scrapper.collyDriven.newColly(targetUrl)
 
-	logger.Info("----------------------------------------------------------------------------------------")
-	logger.Infof("Start parsing %s in %s", scrapper.URL.String(), reflect.TypeOf(XKomGroupScrapper{}).Name())
-	logger.Info("New collector init")
-	c := colly.NewCollector(
-		colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36 OPR/65.0.3467.48"),
-	)
-	deal := &Deal{}
+	deal := &Deal{SiteName: scrapper.URL.Hostname()}
 
 	c.OnHTML("html", func(e *colly.HTMLElement) {
-		deal.SiteName = scrapper.URL.Hostname()
-
-		jsonData := ""
-		for {
-			jsonData = findHotShotJSON(e)
-			if jsonData == "" {
-				time.Sleep(1 * time.Minute)
-			} else {
-				break
-			}
-		}
-
-		jsonData = jsonData[strings.Index(jsonData, "hotShot") : len(jsonData)-1]
-		jsonData = jsonData[strings.Index(jsonData, "extend")+8 : len(jsonData)-1]
-		jsonData = jsonData[0 : strings.Index(jsonData, "},\"id\"")+1]
-
-		var objmap map[string]json.RawMessage
-		err := json.Unmarshal([]byte(jsonData), &objmap)
-		if err != nil {
-			logger.Error("Could not deserialize json. Root error: ")
-			logger.Error(err.Error())
-		}
+		objmap := getHotShotJSON(e)
 
 		json.Unmarshal(objmap["promotionName"], &deal.Name)
-		logger.Infof("Parsed name :%s", deal.Name)
-
 		json.Unmarshal(objmap["price"], &deal.NewPrice)
-		logger.Infof("Parsed new price :%0.2f", deal.NewPrice)
-
 		json.Unmarshal(objmap["oldPrice"], &deal.OldPrice)
-		logger.Infof("Parsed old price :%0.2f", deal.OldPrice)
-
-		dealUrl, _ := e.DOM.Find("meta[property='og:url']").Attr("content")
-		deal.Link = dealUrl
-		logger.Infof("Parsed link :%s", deal.Link)
-
-		dealImageLink, _ := e.DOM.Find("meta[property='og:image']").Attr("content")
-		deal.ImgLink = dealImageLink
-		deal.ImgLink = strings.Replace(deal.ImgLink, "?filters=grayscale", "", -1)
-		logger.Infof("Parsed img link :%s", deal.ImgLink)
-
 		json.Unmarshal(objmap["promotionTotalCount"], &deal.Left)
-		logger.Infof("Parsed left count :%d", deal.Left)
 
-		e.DOM.Find("script")
+		deal.Link, _ = e.DOM.Find("meta[property='og:url']").Attr("content")
+		deal.ImgLink, _ = e.DOM.Find("meta[property='og:image']").Attr("content")
+		deal.ImgLink = strings.Replace(deal.ImgLink, "?filters=grayscale", "", -1)
+
 		deal.Start = getStartDate()
-		logger.Infof("Parsed start date :%s", deal.Start)
 		deal.End = getEndDate()
-		logger.Infof("Parsed end date :%s", deal.End)
 	})
 
-	c.OnRequest(func(r *colly.Request) {
-		logger.Infof("Visiting %s", r.URL.String())
-	})
-
-	targetUrl := scrapper.URL.String() + "/goracy_strzal"
 	err := c.Visit(targetUrl)
 	if err != nil {
 		logger.Errorf("Could not parse %s", targetUrl)
 		logger.Error(err.Error())
 	}
-	marshall, _ := json.MarshalIndent(deal, "", "\t")
-	logger.Infof("Scrapped object:\n%s", string(marshall))
-	logger.Info("----------------------------------------------------------------------------------------")
+	scrapper.collyDriven.logDeal(deal)
 	return deal
+}
+
+func getHotShotJSON(e *colly.HTMLElement) map[string]json.RawMessage {
+	jsonData := ""
+	for {
+		jsonData = findHotShotJSON(e)
+		if jsonData == "" {
+			time.Sleep(1 * time.Minute)
+		} else {
+			break
+		}
+	}
+
+	jsonData = jsonData[strings.Index(jsonData, "hotShot") : len(jsonData)-1]
+	jsonData = jsonData[strings.Index(jsonData, "extend")+8 : len(jsonData)-1]
+	jsonData = jsonData[0 : strings.Index(jsonData, "},\"id\"")+1]
+
+	var objmap map[string]json.RawMessage
+	err := json.Unmarshal([]byte(jsonData), &objmap)
+	if err != nil {
+		logger.Error("Could not deserialize json. Root error: ")
+		logger.Error(err.Error())
+	}
+	return objmap
 }
 
 func findHotShotJSON(e *colly.HTMLElement) string {
