@@ -4,15 +4,20 @@ import (
 	"encoding/json"
 	"github.com/gocolly/colly"
 	"github.com/google/logger"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 )
 
+type MoreleScrapper struct {
+	URL *url.URL
+}
+
 var NumberRegexp = regexp.MustCompile("[0-9]+")
 
-func ScrapMorele() *Deal {
+func (scrapper *MoreleScrapper) Scrap() *Deal {
 	logger.Info("----------------------------------------------------------------------------------------")
 	logger.Infof("Start parsing in MoreleScrapper")
 	logger.Info("New collector init")
@@ -62,9 +67,9 @@ func ScrapMorele() *Deal {
 		logger.Infof("Visiting %s", r.URL.String())
 	})
 
-	err := c.Visit("https://www.morele.net")
+	err := c.Visit(scrapper.URL.String())
 	if err != nil {
-		logger.Errorf("Could not parse https://www.morele.net")
+		logger.Errorf("Could not parse %s", scrapper.URL.String())
 		logger.Error(err.Error())
 	}
 	marshall, _ := json.MarshalIndent(deal, "", "\t")

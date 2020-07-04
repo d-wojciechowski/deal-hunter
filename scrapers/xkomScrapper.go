@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"github.com/gocolly/colly"
 	"github.com/google/logger"
+	"net/url"
+	"reflect"
 	"regexp"
 	"strings"
 	"time"
@@ -11,22 +13,22 @@ import (
 
 var MoneyRegexp = regexp.MustCompile("[  zł]")
 
-func ScrapXKomGroup(root string) *Deal {
+type XKomGroupScrapper struct {
+	URL *url.URL
+}
+
+func (scrapper *XKomGroupScrapper) Scrap() *Deal {
+
 	logger.Info("----------------------------------------------------------------------------------------")
-	logger.Infof("Start parsing %s in XKomGroupParser", root)
+	logger.Infof("Start parsing %s in %s", scrapper.URL.String(), reflect.TypeOf(XKomGroupScrapper{}).Name())
 	logger.Info("New collector init")
 	c := colly.NewCollector(
 		colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36 OPR/65.0.3467.48"),
 	)
 	deal := &Deal{}
-	hotShotRoot := root + "goracy_strzal"
 
 	c.OnHTML("html", func(e *colly.HTMLElement) {
-		if strings.Contains(hotShotRoot, "x-kom") {
-			deal.SiteName = "x-kom"
-		} else {
-			deal.SiteName = "al.to"
-		}
+		deal.SiteName = scrapper.URL.Hostname()
 
 		jsonData := ""
 		for {
@@ -81,9 +83,10 @@ func ScrapXKomGroup(root string) *Deal {
 		logger.Infof("Visiting %s", r.URL.String())
 	})
 
-	err := c.Visit(hotShotRoot)
+	targetUrl := scrapper.URL.String() + "/goracy_strzal"
+	err := c.Visit(targetUrl)
 	if err != nil {
-		logger.Errorf("Could not parse %s", hotShotRoot)
+		logger.Errorf("Could not parse %s", targetUrl)
 		logger.Error(err.Error())
 	}
 	marshall, _ := json.MarshalIndent(deal, "", "\t")

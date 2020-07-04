@@ -6,29 +6,35 @@ import (
 	"github.com/google/logger"
 	"github.com/spf13/viper"
 	"github.com/whiteShtef/clockwork"
+	"net/url"
 	"strconv"
 	"strings"
 )
 
-var jobConfig = make(map[string]func() *scrapers.Deal)
+var jobConfig = make(map[string]scrapers.Scrapper)
 var bot = io.TelegramBot{}
 
 func InitJobs() {
-	jobConfig["xkom"] = func() *scrapers.Deal {
-		return scrapers.ScrapXKomGroup("https://www.x-kom.pl/")
-	}
-	jobConfig["alto"] = func() *scrapers.Deal {
-		return scrapers.ScrapXKomGroup("https://www.al.to/")
-	}
-	jobConfig["combat"] = scrapers.ScrapCombat
-	jobConfig["morele"] = scrapers.ScrapMorele
+	jobConfig["xkom"] = &scrapers.XKomGroupScrapper{URL: parseURL("https://x-kom.pl")}
+	jobConfig["alto"] = &scrapers.XKomGroupScrapper{URL: parseURL("https://al.to")}
+	jobConfig["combat"] = &scrapers.CombatScrapper{URL: parseURL("https://combat.pl")}
+	jobConfig["morele"] = &scrapers.MoreleScrapper{URL: parseURL("https://morele.net")}
 
 	bot.Setup()
 }
 
+func parseURL(link string) *url.URL {
+	parse, err := url.Parse(link)
+	if err != nil {
+		logger.Errorf("Could not parse given URL: %s", link)
+		panic(err)
+	}
+	return parse
+}
+
 type ScheduleJob struct {
 	Handler func([]*scrapers.Deal)
-	Steps   []func() *scrapers.Deal
+	Steps   []scrapers.Scrapper
 }
 
 func CreateScheduler() *clockwork.Scheduler {
@@ -50,7 +56,7 @@ func constructJob(stringMap map[string]interface{}, function func(interval strin
 	for key, value := range stringMap {
 		job := ScheduleJob{
 			Handler: defaultHandler,
-			Steps:   make([]func() *scrapers.Deal, 0),
+			Steps:   make([]scrapers.Scrapper, 0),
 		}
 		for _, entry := range value.([]interface{}) {
 			job.Steps = append(job.Steps, jobConfig[entry.(string)])
@@ -62,8 +68,7 @@ func constructJob(stringMap map[string]interface{}, function func(interval strin
 func (job *ScheduleJob) execute() {
 	deals := make([]*scrapers.Deal, 0)
 	for _, step := range job.Steps {
-		stepResult := step()
-		deals = append(deals, stepResult)
+		deals = append(deals, step.Scrap())
 	}
 	job.Handler(deals)
 }

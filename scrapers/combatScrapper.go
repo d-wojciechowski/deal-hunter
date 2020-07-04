@@ -5,18 +5,23 @@ import (
 	"github.com/google/logger"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func ScrapCombat() *Deal {
+type CombatScrapper struct {
+	URL *url.URL
+}
+
+func (scrapper *CombatScrapper) Scrap() *Deal {
 	logger.Info("----------------------------------------------------------------------------------------")
-	logger.Infof("Start parsing https://www.combat.pl/ in ScrapCombat")
+	logger.Infof("Start parsing %s in ScrapCombat", scrapper.URL.String())
 	deal := &Deal{}
 
 	client := &http.Client{}
-	request, _ := http.NewRequest("GET", "https://www.combat.pl/rest/V1/get-hot-shot", nil)
+	request, _ := http.NewRequest("GET", scrapper.URL.String()+"/rest/V1/get-hot-shot", nil)
 	request.Header.Add("Content-Type", "application/json")
 	response, _ := client.Do(request)
 	defer response.Body.Close()
@@ -35,7 +40,7 @@ func ScrapCombat() *Deal {
 	json.Unmarshal(objmap["regular_url"], &deal.Link)
 	logger.Infof("Parsed link :%s", deal.Link)
 	json.Unmarshal(objmap["photo"], &deal.ImgLink)
-	deal.ImgLink = "https://www.combat.pl/pub/media/catalog/product" + deal.ImgLink
+	deal.ImgLink = scrapper.URL.String() + "/pub/media/catalog/product" + deal.ImgLink
 	logger.Infof("Parsed img link :%s", deal.ImgLink)
 
 	tempString := ""

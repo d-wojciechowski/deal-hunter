@@ -1,6 +1,8 @@
 package scrapers
 
-import "time"
+import (
+	"time"
+)
 
 type Deal struct {
 	Id       int64
@@ -19,4 +21,8 @@ type Deal struct {
 
 type Subscriber struct {
 	Id string `db:"subscriber_chat"`
+}
+
+type Scrapper interface {
+	Scrap() *Deal
 }
