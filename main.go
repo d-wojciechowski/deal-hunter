@@ -29,6 +29,14 @@ func main() {
 	scrapper := scrapers.XKomGroupScrapper{URL: parse}
 	scrapper.Scrap()
 
+	parse, err = url.Parse("https://combat.pl")
+	if err != nil {
+		logger.Errorf("Could not parse given URL: %s", "link")
+		panic(err)
+	}
+	combatScrapper := scrapers.CombatScrapper{URL: parse}
+	combatScrapper.Scrap()
+
 	//io.InitDB()
 
 	//scheduler.InitJobs()
