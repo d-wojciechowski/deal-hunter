@@ -1,8 +1,10 @@
 package scrapers
 
 import (
+	"errors"
 	"github.com/gocolly/colly"
 	"github.com/google/logger"
+	"time"
 )
 
 type collyWrapper struct {
@@ -13,6 +15,9 @@ type collyWrapper struct {
 	deal     *Deal
 	coly     *colly.Collector
 }
+
+const refreshRate = time.Minute * 5
+const maxRetry = 36
 
 func (wrapper *collyWrapper) init() {
 	wrapper.coly = colly.NewCollector(
@@ -28,10 +33,16 @@ func (wrapper *collyWrapper) init() {
 }
 
 func (wrapper *collyWrapper) execute() *Deal {
-	err := wrapper.coly.Visit(wrapper.Link)
-	if err != nil {
-		logger.Errorf("Could not parse %s", wrapper.Link)
-		logger.Error(err.Error())
+	err := errors.New("entry")
+	var retryCount = 0
+	for err != nil || retryCount >= maxRetry {
+		err = wrapper.coly.Visit(wrapper.Link)
+		if err != nil {
+			logger.Errorf("Could not parse %s. Next try in %d minutes", wrapper.Link, int(refreshRate.Minutes()))
+			logger.Error(err.Error())
+			time.Sleep(refreshRate)
+			retryCount++
+		}
 	}
 	return wrapper.deal
 }
