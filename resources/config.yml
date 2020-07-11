@@ -11,11 +11,10 @@ scheduler:
     10-01:
       - xkom
       - alto
+    14-01:
+      morele
     22-01:
       - xkom
       - alto
     00-01:
       - combat
-  every:
-    15:
-      - morele

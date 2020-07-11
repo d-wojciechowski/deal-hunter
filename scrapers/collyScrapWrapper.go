@@ -16,8 +16,8 @@ type collyWrapper struct {
 	coly     *colly.Collector
 }
 
-const refreshRate = time.Minute * 5
-const maxRetry = 36
+const refreshRate = time.Minute * 15
+const maxRetry = 12
 
 func (wrapper *collyWrapper) init() {
 	wrapper.coly = colly.NewCollector(
