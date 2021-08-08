@@ -12,7 +12,7 @@ scheduler:
       - xkom
       - alto
     14-01:
-      morele
+      - morele
     22-01:
       - xkom
       - alto
