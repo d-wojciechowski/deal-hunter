@@ -21,3 +21,9 @@ Write-Output("Windows x64 build done.`n")
 
 $env:GOOS=$env:OLDGOOS
 $env:GOARCH=$env:OLDGOARCH
+
+upx -9 distr/DealHunter-linux-x64
+upx -9 distr/DealHunter-windows-x64.exe
+
+docker build -t dwojciechowski/dealhunter:latest .
+docker save --output deal-hunter.tar.gz dwojciechowski/dealhunter:latest

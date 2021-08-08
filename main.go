@@ -8,6 +8,7 @@ import (
 	"github.com/google/logger"
 	"github.com/spf13/viper"
 	"log"
+	"net/http"
 	"os"
 	"time"
 )
@@ -23,6 +24,11 @@ func main() {
 	getConfig()
 
 	io.InitDB()
+
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+	})
+	go http.ListenAndServe("localhost:8086", nil)
 
 	scheduler.InitJobs()
 	scheduler.CreateScheduler().Run()
